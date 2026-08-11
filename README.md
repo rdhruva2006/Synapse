@@ -1,4 +1,6 @@
-# AI Workflow Builder
+# AI Workflow Builder (Synapse)
+
+**🚀 Live Demo:** [https://synapse-next-app.vercel.app](https://synapse-next-app.vercel.app)
 
 A serverless SaaS application for building and executing AI workflows via a node-based visual interface.
 
