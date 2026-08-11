@@ -68,7 +68,7 @@ export default function WorkflowBuilder({ params }: { params: { workflowId: stri
             style={{ background: 'transparent' }}
           >
             <Background color="rgba(255,255,255,0.1)" gap={16} size={1} />
-            <Controls style={{ button: { backgroundColor: 'var(--surface-color)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' } }} />
+            <Controls />
             <MiniMap style={{ backgroundColor: 'var(--surface-color)' }} />
           </ReactFlow>
         </div>
