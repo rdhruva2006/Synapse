@@ -1,0 +1,182 @@
+# relationships.yaml
+# Define object and array relationships for the workflow system.
+# Nhost expects metadata in YAML format (Hasura v3 metadata).
+
+relationships:
+  # ─── organizations ───
+  - table: public.organizations
+    name: members
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table: public.org_members
+
+  # ─── org_members ───
+  - table: public.org_members
+    name: organization
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table: public.organizations
+  - table: public.org_members
+    name: user
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table: auth.users
+
+  # ─── workflows ───
+  - table: public.workflows
+    name: organization
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table: public.organizations
+  - table: public.workflows
+    name: workflow_steps
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflow_steps
+  - table: public.workflows
+    name: workflow_edges
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflow_edges
+  - table: public.workflows
+    name: workflow_runs
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflow_runs
+
+  # ─── workflow_steps ───
+  - table: public.workflow_steps
+    name: workflow
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflows
+  - table: public.workflow_steps
+    name: outgoing_edges
+    using:
+      manual_configuration:
+        remote_table:
+          name: public.workflow_edges
+          schema: public
+        column_mapping:
+          id: source_step_id
+  - table: public.workflow_steps
+    name: incoming_edges
+    using:
+      manual_configuration:
+        remote_table:
+          name: public.workflow_edges
+          schema: public
+        column_mapping:
+          id: target_step_id
+  - table: public.workflow_steps
+    name: step_runs
+    using:
+      foreign_key_constraint_on:
+        column: workflow_step_id
+        table: public.step_runs
+
+  # ─── workflow_edges ───
+  - table: public.workflow_edges
+    name: workflow
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflows
+  - table: public.workflow_edges
+    name: source_step
+    using:
+      foreign_key_constraint_on:
+        column: source_step_id
+        table: public.workflow_steps
+  - table: public.workflow_edges
+    name: target_step
+    using:
+      foreign_key_constraint_on:
+        column: target_step_id
+        table: public.workflow_steps
+
+  # ─── workflow_triggers ───
+  - table: public.workflow_triggers
+    name: workflow
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflows
+
+  # ─── workflow_runs ───
+  - table: public.workflow_runs
+    name: workflow
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflows
+  - table: public.workflow_runs
+    name: organization
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table: public.organizations
+  - table: public.workflow_runs
+    name: step_runs
+    using:
+      foreign_key_constraint_on:
+        column: workflow_run_id
+        table: public.step_runs
+
+  # ─── step_runs ───
+  - table: public.step_runs
+    name: workflow_run
+    using:
+      foreign_key_constraint_on:
+        column: workflow_run_id
+        table: public.workflow_runs
+  - table: public.step_runs
+    name: workflow_step
+    using:
+      foreign_key_constraint_on:
+        column: workflow_step_id
+        table: public.workflow_steps
+  - table: public.step_runs
+    name: notifications
+    using:
+      foreign_key_constraint_on:
+        column: step_run_id
+        table: public.notifications
+
+  # ─── notifications ───
+  - table: public.notifications
+    name: organization
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table: public.organizations
+  - table: public.notifications
+    name: step_run
+    using:
+      foreign_key_constraint_on:
+        column: step_run_id
+        table: public.step_runs
+
+  # ─── audit_log ───
+  - table: public.audit_log
+    name: organization
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table: public.organizations
+
+  # ─── webhook_rate_limits ───
+  - table: public.webhook_rate_limits
+    name: workflow
+    using:
+      foreign_key_constraint_on:
+        column: workflow_id
+        table: public.workflows

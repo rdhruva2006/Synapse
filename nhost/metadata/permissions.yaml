@@ -1,0 +1,359 @@
+# permissions.yaml — Hasura row-level permissions (two-layer model)
+#
+# Layer 1: org_members-based access (every table scoped to an org)
+#   - Users can only see/modify data belonging to their org.
+#   - Enforced via a relationship check: org_members.user_id == x-hasura-user-id
+#
+# Layer 2: Role-based restrictions within the org
+#   - owner: full CRUD on everything in the org
+#   - editor: CRUD on workflows, steps, edges, triggers, runs; read on org settings
+#   - viewer: read-only on everything in the org
+
+permissions:
+
+  # ─── organizations ───
+  - table: public.organizations
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        members:
+          user_id:
+            _eq: X-Hasura-User-Id
+      columns: "*"
+
+  - table: public.organizations
+    role: user
+    permission_type: update
+    definition:
+      filter:
+        members:
+          user_id:
+            _eq: X-Hasura-User-Id
+          role:
+            _eq: owner
+      columns:
+        - name
+        - slug
+
+  # ─── org_members ───
+  - table: public.org_members
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns: "*"
+
+  - table: public.org_members
+    role: user
+    permission_type: insert
+    definition:
+      check:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _in:
+                - owner
+      columns:
+        - user_id
+        - org_id
+        - role
+
+  - table: public.org_members
+    role: user
+    permission_type: update
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: owner
+      columns:
+        - role
+
+  - table: public.org_members
+    role: user
+    permission_type: delete
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: owner
+
+  # ─── workflows ───
+  - table: public.workflows
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns: "*"
+
+  - table: public.workflows
+    role: user
+    permission_type: insert
+    definition:
+      check:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _in:
+                - owner
+                - editor
+      columns:
+        - org_id
+        - name
+        - description
+        - is_active
+        - created_by
+      set:
+        created_by: X-Hasura-User-Id
+
+  - table: public.workflows
+    role: user
+    permission_type: update
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _in:
+                - owner
+                - editor
+      columns:
+        - name
+        - description
+        - is_active
+
+  - table: public.workflows
+    role: user
+    permission_type: delete
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+            role:
+              _eq: owner
+
+  # ─── workflow_steps ───
+  - table: public.workflow_steps
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+      columns: "*"
+
+  - table: public.workflow_steps
+    role: user
+    permission_type: insert
+    definition:
+      check:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _in:
+                  - owner
+                  - editor
+      columns:
+        - workflow_id
+        - step_order
+        - step_type
+        - name
+        - config
+        - position_x
+        - position_y
+
+  - table: public.workflow_steps
+    role: user
+    permission_type: update
+    definition:
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _in:
+                  - owner
+                  - editor
+      columns:
+        - step_order
+        - name
+        - config
+        - position_x
+        - position_y
+
+  - table: public.workflow_steps
+    role: user
+    permission_type: delete
+    definition:
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _in:
+                  - owner
+                  - editor
+
+  # ─── workflow_edges ───
+  - table: public.workflow_edges
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+      columns: "*"
+
+  - table: public.workflow_edges
+    role: user
+    permission_type: insert
+    definition:
+      check:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _in:
+                  - owner
+                  - editor
+      columns:
+        - workflow_id
+        - source_step_id
+        - target_step_id
+        - edge_type
+
+  - table: public.workflow_edges
+    role: user
+    permission_type: delete
+    definition:
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _in:
+                  - owner
+                  - editor
+
+  # ─── workflow_triggers ───
+  - table: public.workflow_triggers
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+      columns: "*"
+
+  - table: public.workflow_triggers
+    role: user
+    permission_type: insert
+    definition:
+      check:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+              role:
+                _in:
+                  - owner
+                  - editor
+      columns:
+        - workflow_id
+        - trigger_type
+        - config
+        - is_active
+
+  # ─── workflow_runs ───
+  - table: public.workflow_runs
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns: "*"
+
+  # ─── step_runs ───
+  - table: public.step_runs
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        workflow_run:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+      columns: "*"
+
+  # ─── notifications ───
+  - table: public.notifications
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns: "*"
+
+  # ─── audit_log ───
+  - table: public.audit_log
+    role: user
+    permission_type: select
+    definition:
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns: "*"
+    comment: "Audit log is read-only for all org members"

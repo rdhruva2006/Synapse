@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: nhost
+      POSTGRES_DB: nhost
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  hasura:
+    image: nhost/hasura:latest
+    depends_on:
+      - postgres
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://nhost:password@postgres:5432/nhost
+      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecret
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nhost/metadata:/hasura-metadata
+      - ./nhost/migrations:/hasura-migrations
+    command: >
+      sh -c "hasura console --endpoint http://localhost:8080 --admin-secret $${HASURA_GRAPHQL_ADMIN_SECRET}"
+
+  functions:
+    build:
+      context: ./functions
+      dockerfile: Dockerfile
+    environment:
+      HASURA_ADMIN_SECRET: myadminsecret
+      HASURA_GRAPHQL_ENDPOINT: http://hasura:8080/v1/graphql
+    depends_on:
+      - hasura
+    ports:
+      - "3001:3001"
+    command: npm run start
+
+  next-app:
+    build:
+      context: ./next-app
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_HASURA_ENDPOINT: http://hasura:8080/v1/graphql
+      NEXT_PUBLIC_HASURA_ADMIN_SECRET: myadminsecret
+    depends_on:
+      - hasura
+    ports:
+      - "3000:3000"
+    command: npm run dev
+
+volumes:
+  pgdata:

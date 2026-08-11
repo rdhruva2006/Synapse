@@ -1,0 +1,17 @@
+{
+  "name": "ai-workflow-builder-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "seed": "ts-node seed.ts",
+    "test-permissions": "ts-node test-permissions.ts"
+  },
+  "dependencies": {
+    "graphql-request": "^6.1.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}

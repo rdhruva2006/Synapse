@@ -1,0 +1,17 @@
+{
+  "name": "ai-workflow-builder",
+  "private": true,
+  "workspaces": [
+    "nhost",
+    "functions",
+    "next-app"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel dev",
+    "seed": "pnpm --filter scripts run seed",
+    "test:permissions": "pnpm --filter scripts run test-permissions"
+  },
+  "devDependencies": {
+    "pnpm": "^9.0.0"
+  }
+}

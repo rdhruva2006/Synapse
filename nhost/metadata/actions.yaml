@@ -1,0 +1,98 @@
+# actions.yaml — Hasura Action definitions
+# These map GraphQL mutations to the serverless function endpoints.
+
+actions:
+  - name: createOrganization
+    definition:
+      kind: synchronous
+      handler: "{{FUNCTIONS_URL}}/create-organization"
+      request_transform: null
+    permissions:
+      - role: user
+    comment: "Bootstrap a new organization and set the caller as owner"
+
+  - name: triggerWorkflowRun
+    definition:
+      kind: synchronous
+      handler: "{{FUNCTIONS_URL}}/trigger-workflow-run"
+      request_transform: null
+    permissions:
+      - role: user
+    comment: "Start a new workflow run (checks org role and quota)"
+
+  - name: approveStep
+    definition:
+      kind: synchronous
+      handler: "{{FUNCTIONS_URL}}/approve-step"
+      request_transform: null
+    permissions:
+      - role: user
+    comment: "Approve a paused approval_gate step and resume the workflow"
+
+  - name: executeStep
+    definition:
+      kind: synchronous
+      handler: "{{FUNCTIONS_URL}}/execute-step"
+      request_transform: null
+    permissions:
+      - role: user
+    comment: "Execute a single step within a workflow run"
+
+custom_types:
+  input_objects:
+    - name: CreateOrganizationInput
+      fields:
+        - name: name
+          type: String!
+        - name: slug
+          type: String!
+
+    - name: TriggerWorkflowRunInput
+      fields:
+        - name: workflow_id
+          type: uuid!
+        - name: idempotency_key
+          type: String
+
+    - name: ApproveStepInput
+      fields:
+        - name: step_run_id
+          type: uuid!
+
+    - name: ExecuteStepInput
+      fields:
+        - name: workflow_run_id
+          type: uuid!
+        - name: step_id
+          type: uuid!
+
+  objects:
+    - name: CreateOrganizationOutput
+      fields:
+        - name: org_id
+          type: uuid!
+        - name: org_member_id
+          type: uuid!
+
+    - name: TriggerWorkflowRunOutput
+      fields:
+        - name: workflow_run_id
+          type: uuid!
+        - name: status
+          type: String!
+        - name: message
+          type: String!
+
+    - name: ApproveStepOutput
+      fields:
+        - name: success
+          type: Boolean!
+        - name: message
+          type: String!
+
+    - name: ExecuteStepOutput
+      fields:
+        - name: step_run_id
+          type: uuid!
+        - name: status
+          type: String!
